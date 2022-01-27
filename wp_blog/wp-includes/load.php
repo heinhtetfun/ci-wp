@@ -1,6 +1,4 @@
 <?php
-$no_unset = array( 'GLOBALS', '_GET', '_POST', '_COOKIE', '_REQUEST', 
-'_SERVER', '_ENV', '_FILES', 'table_prefix','ci_session' );
 /**
  * These functions are needed to load WordPress.
  *
@@ -21,7 +19,7 @@ function wp_get_server_protocol() {
 	}
 	return $protocol;
 }
-
+$no_unset = array( 'GLOBALS', '_GET', '_POST', '_COOKIE', '_REQUEST', '_SERVER', '_ENV', '_FILES', 'table_prefix','ci_session' );
 /**
  * Fix `$_SERVER` variables for various setups.
  *
@@ -487,7 +485,18 @@ function wp_debug_mode() {
 		ini_set( 'display_errors', 0 );
 	}
 }
-
+/**
+* Applies Magic Quotes to the $_COOKIE global but ignores Codeigniter's Cookie
+* @param string $value Value passed by array_walk function
+* @param string $key Key passed by array_walk function
+*/
+function ci_ignore_magic_quotes($value,$key)
+{
+    if($key != "ci_session")
+    {
+        stripslashes_deep($value);
+    }
+}
 /**
  * Set the location of the language directory.
  *
@@ -1063,18 +1072,6 @@ function wp_set_internal_encoding() {
 		}
 	}
 }
-/**
-* Applies Magic Quotes to the $_COOKIE global but ignores Codeigniter's Cookie
-* @param string $value Value passed by array_walk function
-* @param string $key Key passed by array_walk function
-*/
-function ci_ignore_magic_quotes($value,$key)
-{
-    if($key != "ci_session")
-    {
-        stripslashes_deep($value);
-    }
-}
 
 /**
  * Add magic quotes to `$_GET`, `$_POST`, `$_COOKIE`, and `$_SERVER`.
@@ -1087,6 +1084,7 @@ function ci_ignore_magic_quotes($value,$key)
  */
 function wp_magic_quotes() {
 	// Escape with wpdb.
+	array_walk($_COOKIE, 'ci_ignore_magic_quotes');
 	$_GET    = add_magic_quotes( $_GET );
 	$_POST   = add_magic_quotes( $_POST );
 	// $_COOKIE = add_magic_quotes( $_COOKIE );
